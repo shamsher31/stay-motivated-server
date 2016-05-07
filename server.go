@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"fmt"
 	"net/http"
 	"os"
 	"time"
@@ -11,6 +11,7 @@ import (
 	"github.com/labstack/echo/middleware"
 
 	"github.com/shamsher31/stay-motivated-server/db"
+	"github.com/shamsher31/stay-motivated-server/utils"
 
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
@@ -24,7 +25,17 @@ type Quote struct {
 	Timestamp time.Time     `json:"timestamp" bson:"timestamp"`
 }
 
+// type Server struct {
+// 	db *mgo.Session
+// }
+
 func main() {
+
+	// db, err := mgo.Dial(os.Getenv("DB_URL"))
+	// utils.CheckError(err)
+	// defer db.Close()
+
+	// server := &Server{db: db}
 
 	e := echo.New()
 
@@ -42,51 +53,54 @@ func main() {
 
 }
 
-func getCollection() (qoutes *mgo.Collection) {
-	session := db.GetSession()
-	defer session.Close()
-
-	qoutes = session.DB(db.DBName).C("qoutes")
-	return qoutes
-}
-
 func createQoute(c echo.Context) error {
 
 	title := c.FormValue("title")
 	author := c.FormValue("author")
 
-	qoutes := getCollection()
+	session, err := db.GetSession()
+	utils.CheckError(err)
+	defer session.Close()
+
+	qoutes := db.GetCollection(session, "qoutes")
 	id := db.GenerateID()
-	err := qoutes.Insert(&Quote{id, title, author, time.Now()})
-	if err != nil {
-		log.Fatal(err)
-	}
+	err = qoutes.Insert(&Quote{id, title, author, time.Now()})
+
+	utils.CheckError(err)
 
 	return c.JSON(http.StatusOK, qoutes)
 }
 
 func getAllQoutes(c echo.Context) error {
 
-	qoutes := getCollection()
-
 	var results []Quote
-	err := qoutes.Find(bson.M{"name": "Sam"}).Sort("-timestamp").All(&results)
 
+	session, err := mgo.Dial(os.Getenv("DB_URL"))
 	if err != nil {
 		panic(err)
 	}
 
+	qoutes := session.DB(db.DBName).C("qoutes")
+	err = qoutes.Find(bson.M{"author": "Sam"}).One(&results)
+
+	if err != nil {
+		fmt.Println(err)
+	}
 	return c.JSON(http.StatusOK, results)
 }
 
 func getQoute(c echo.Context) error {
-	qoutes := getCollection()
+
+	session, err := db.GetSession()
+	utils.CheckError(err)
+	defer session.Close()
+
+	qoutes := db.GetCollection(session, "qoutes")
 
 	result := Quote{}
-	err := qoutes.Find(bson.M{"name": "Sam"}).One(&result)
-	if err != nil {
-		panic(err)
-	}
+	err = qoutes.Find(bson.M{"name": "Sam"}).One(&result)
+
+	utils.CheckError(err)
 
 	return c.JSON(http.StatusOK, result)
 }

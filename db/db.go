@@ -23,20 +23,24 @@ var (
 )
 
 // GetSession gives new mongo session
-func GetSession() *mgo.Session {
+func GetSession() (*mgo.Session, error) {
 	if mgoSession == nil {
 		mgoSession, err := mgo.Dial(os.Getenv("DB_URL"))
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 		// Optional. Switch the session to a monotonic behavior.
 		mgoSession.SetMode(mgo.Monotonic, true)
 	}
-	return mgoSession.Clone()
+	return mgoSession.Copy(), nil
 }
 
 // GenerateID gives new mongo id
 func GenerateID() (id bson.ObjectId) {
-	id = bson.NewObjectId()
-	return id
+	return bson.NewObjectId()
+}
+
+// GetCollection gives collection name you want to select
+func GetCollection(s *mgo.Session, colName string) (qoutes *mgo.Collection) {
+	return s.DB(DBName).C(colName)
 }
