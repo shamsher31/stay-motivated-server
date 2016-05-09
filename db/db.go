@@ -1,38 +1,26 @@
 package db
 
 import (
-	"log"
+	"fmt"
 	"os"
 
-	"github.com/joho/godotenv"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
-func init() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
-}
-
 // DBName define name of database
-var (
-	mgoSession *mgo.Session
-	DBName     = os.Getenv("DB_NAME")
-)
+var DBName = "motivational"
 
-// GetSession gives new mongo session
-func GetSession() (*mgo.Session, error) {
-	if mgoSession == nil {
-		mgoSession, err := mgo.Dial(os.Getenv("DB_URL"))
-		if err != nil {
-			return nil, err
-		}
-		// Optional. Switch the session to a monotonic behavior.
-		mgoSession.SetMode(mgo.Monotonic, true)
+// ConnectDB connects to mongodb
+func ConnectDB() (session *mgo.Session) {
+
+	session, err := mgo.Dial(os.Getenv("DB_URL"))
+	if err != nil {
+		fmt.Printf("Can't connect to mongo, go error %v\n", err)
+		os.Exit(1)
 	}
-	return mgoSession.Copy(), nil
+	session.SetSafe(&mgo.Safe{})
+	return session
 }
 
 // GenerateID gives new mongo id

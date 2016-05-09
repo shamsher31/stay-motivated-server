@@ -1,11 +1,12 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"time"
 
+	"github.com/joho/godotenv"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/engine/fasthttp"
 	"github.com/labstack/echo/middleware"
@@ -35,17 +36,27 @@ type Quote struct {
 	Timestamp time.Time     `json:"timestamp" bson:"timestamp"`
 }
 
-// type Server struct {
-// 	db *mgo.Session
-// }
+// Server provides common mongo session
+type Server struct {
+	session *mgo.Session
+}
+
+// Global variable to hold mongo session
+var gServer Server
+
+func init() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+}
 
 func main() {
 
-	// db, err := mgo.Dial(os.Getenv("DB_URL"))
-	// utils.CheckError(err)
-	// defer db.Close()
+	session := db.ConnectDB()
+	defer session.Close()
 
-	// server := &Server{db: db}
+	gServer = Server{session}
 
 	e := echo.New()
 
@@ -53,7 +64,7 @@ func main() {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
-	e.POST("/qoutes", createQoute)
+	e.POST("/qoutes/", createQoute)
 	e.GET("/qoutes/", getAllQoutes)
 	e.GET("/qoutes/:id", getQoute)
 	// e.PUT("/qoutes/:id", updateQoute)
@@ -65,16 +76,20 @@ func main() {
 
 func createQoute(c echo.Context) error {
 
+	session := gServer.session.Copy()
+	defer session.Close()
+
 	title := c.FormValue("title")
 	author := c.FormValue("author")
 
-	session, err := db.GetSession()
-	utils.CheckError(err)
-	defer session.Close()
-
-	qoutes := db.GetCollection(session, "qoutes")
 	id := db.GenerateID()
-	err = qoutes.Insert(&Quote{id, title, author, time.Now()})
+	qoutes := db.GetCollection(session, "qoutes")
+	err := qoutes.Insert(&Quote{
+		ID:        id,
+		Title:     title,
+		Author:    author,
+		Timestamp: time.Now(),
+	})
 
 	utils.CheckError(err)
 
@@ -85,30 +100,24 @@ func getAllQoutes(c echo.Context) error {
 
 	var results []Quote
 
-	session, err := mgo.Dial(os.Getenv("DB_URL"))
-	if err != nil {
-		panic(err)
-	}
+	session := gServer.session.Copy()
+	defer session.Close()
 
-	qoutes := session.DB(db.DBName).C("qoutes")
-	err = qoutes.Find(bson.M{"author": "Sam"}).One(&results)
+	qoutes := db.GetCollection(session, "qoutes")
+	err := qoutes.Find(bson.M{}).One(&results)
 
-	if err != nil {
-		fmt.Println(err)
-	}
+	utils.CheckError(err)
 	return c.JSON(http.StatusOK, results)
 }
 
 func getQoute(c echo.Context) error {
 
-	session, err := db.GetSession()
-	utils.CheckError(err)
+	session := gServer.session.Copy()
 	defer session.Close()
 
-	qoutes := db.GetCollection(session, "qoutes")
-
 	result := Quote{}
-	err = qoutes.Find(bson.M{"name": "Sam"}).One(&result)
+	qoutes := db.GetCollection(session, "qoutes")
+	err := qoutes.Find(bson.M{}).One(&result)
 
 	utils.CheckError(err)
 
