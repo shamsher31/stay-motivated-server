@@ -17,11 +17,21 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+type Status int
+
+const (
+	PENDING Status = iota
+	APPROVED
+	CANCELED
+)
+
 // Quote defines structure of quote
 type Quote struct {
 	ID        bson.ObjectId `json:"-" bson:"_id,omitempty"`
 	Title     string        `json:"title" bson:"title"`
 	Author    string        `json:"author" bson:"author,omitempty"`
+	Status    string        `json:"status" bson:"status"`
+	Tag       []string      `json:"tag" bson:"tag"`
 	Timestamp time.Time     `json:"timestamp" bson:"timestamp"`
 }
 
