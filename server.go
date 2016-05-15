@@ -67,7 +67,7 @@ func main() {
 	e.POST("/qoutes/", createQoute)
 	e.GET("/qoutes/", getAllQoutes)
 	e.GET("/qoutes/:id", getQoute)
-	// e.PUT("/qoutes/:id", updateQoute)
+	e.PUT("/qoutes/:id", updateQoute)
 	e.DELETE("/qoutes/:id", deleteQoute)
 
 	e.Run(fasthttp.New(os.Getenv("PORT")))
@@ -122,6 +122,21 @@ func getQoute(c echo.Context) error {
 	utils.CheckError(err)
 
 	return c.JSON(http.StatusOK, result)
+}
+
+func updateQoute(c echo.Context) error {
+	session := gServer.session.Copy()
+	defer session.Close()
+
+	id := db.GetHexID(c.Param("id"))
+	author := c.FormValue("author")
+
+	qoutes := db.GetCollection(session, "qoutes")
+	err := qoutes.Update(bson.M{"_id": id}, bson.M{"$set": bson.M{"author": author}})
+
+	utils.CheckError(err)
+
+	return c.JSON(http.StatusOK, qoutes)
 }
 
 func deleteQoute(c echo.Context) error {
