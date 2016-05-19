@@ -18,10 +18,10 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-type Status int
+type StatusType int
 
 const (
-	PENDING Status = iota
+	PENDING StatusType = iota
 	APPROVED
 	CANCELED
 )
@@ -31,7 +31,7 @@ type Quote struct {
 	ID        bson.ObjectId `json:"-" bson:"_id,omitempty"`
 	Title     string        `json:"title" bson:"title"`
 	Author    string        `json:"author" bson:"author,omitempty"`
-	Status    string        `json:"status" bson:"status"`
+	Status    StatusType    `json:"status" bson:"status"`
 	Tag       []string      `json:"tag" bson:"tag"`
 	Timestamp time.Time     `json:"timestamp" bson:"timestamp"`
 }
@@ -88,6 +88,7 @@ func createQoute(c echo.Context) error {
 		ID:        id,
 		Title:     title,
 		Author:    author,
+		Status:    PENDING,
 		Timestamp: time.Now(),
 	})
 
