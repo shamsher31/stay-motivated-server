@@ -29,17 +29,9 @@ type Quote struct {
 	Timestamp time.Time     `json:"timestamp" bson:"timestamp"`
 }
 
-// Server provides common mongo session
-type Server struct {
-	session *mgo.Session
-}
-
-// Global variable to hold mongo session
-var gServer Server
-
 func CreateQoute(c echo.Context) error {
 
-	session := gServer.session.Copy()
+	session := db.ConnectDB()
 	defer session.Close()
 
 	title := c.FormValue("title")
@@ -57,14 +49,14 @@ func CreateQoute(c echo.Context) error {
 
 	utils.CheckError(err)
 
-	return c.JSON(http.StatusOK, qoutes)
+	return c.JSON(http.StatusOK, id)
 }
 
 func GetAllQoutes(c echo.Context) error {
 
 	var results []Quote
 
-	session := gServer.session.Copy()
+	session := db.ConnectDB()
 	defer session.Close()
 
 	qoutes := db.GetCollection(session, "qoutes")
@@ -76,7 +68,7 @@ func GetAllQoutes(c echo.Context) error {
 
 func GetQoute(c echo.Context) error {
 
-	session := gServer.session.Copy()
+	session := db.ConnectDB()
 	defer session.Close()
 
 	result := Quote{}
@@ -89,23 +81,33 @@ func GetQoute(c echo.Context) error {
 }
 
 func UpdateQoute(c echo.Context) error {
-	session := gServer.session.Copy()
+	session := db.ConnectDB()
 	defer session.Close()
 
 	id := db.GetHexID(c.Param("id"))
-	author := c.FormValue("author")
+
+	var qoute Quote
 
 	qoutes := db.GetCollection(session, "qoutes")
-	err := qoutes.Update(bson.M{"_id": id}, bson.M{"$set": bson.M{"author": author}})
+
+	change := mgo.Change{
+		Update: bson.M{"$set": bson.M{
+			"title":  c.FormValue("title"),
+			"author": c.FormValue("author"),
+		}},
+		ReturnNew: true,
+	}
+
+	info, err := qoutes.Find(bson.M{"_id": id}).Apply(change, &qoute)
 
 	utils.CheckError(err)
 
-	return c.JSON(http.StatusOK, qoutes)
+	return c.JSON(http.StatusOK, info)
 }
 
 func DeleteQoute(c echo.Context) error {
 
-	session := gServer.session.Copy()
+	session := db.ConnectDB()
 	defer session.Close()
 
 	id := db.GetHexID(c.Param("id"))
