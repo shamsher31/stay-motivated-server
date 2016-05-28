@@ -2,6 +2,7 @@ package qoutes
 
 import (
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/labstack/echo"
@@ -16,7 +17,7 @@ type StatusType int
 const (
 	PENDING StatusType = iota
 	APPROVED
-	CANCELED
+	REJECTED
 )
 
 // Quote defines structure of quote
@@ -119,4 +120,24 @@ func DeleteQoute(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, qoutes)
 
+}
+
+func UpdateStatus(c echo.Context) error {
+
+	session := db.ConnectDB()
+	defer session.Close()
+
+	id := db.GetHexID(c.Param("id"))
+	status, err := strconv.Atoi(c.Param("status"))
+
+	utils.CheckError(err)
+
+	qoutes := db.GetCollection(session, "qoutes")
+	err = qoutes.Update(
+		bson.M{"_id": id},
+		bson.M{"$set": bson.M{"status": status}})
+
+	utils.CheckError(err)
+
+	return c.JSON(http.StatusOK, id)
 }

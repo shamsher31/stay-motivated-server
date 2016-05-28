@@ -30,6 +30,7 @@ func main() {
 	e.GET("/qoutes/", qoutes.GetAllQoutes)
 	e.GET("/qoutes/:id", qoutes.GetQoute)
 	e.PUT("/qoutes/:id", qoutes.UpdateQoute)
+	e.PUT("/qoutes/:id/:status", qoutes.UpdateStatus)
 	e.DELETE("/qoutes/:id", qoutes.DeleteQoute)
 
 	e.Run(fasthttp.New(os.Getenv("PORT")))
