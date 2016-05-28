@@ -1,6 +1,7 @@
 package qoutes
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 	"time"
@@ -19,6 +20,8 @@ const (
 	APPROVED
 	REJECTED
 )
+
+var ErrInvalidStatusType = errors.New("Invalid StatusType")
 
 // Quote defines structure of quote
 type Quote struct {
@@ -128,7 +131,7 @@ func UpdateStatus(c echo.Context) error {
 	defer session.Close()
 
 	id := db.GetHexID(c.Param("id"))
-	status, err := strconv.Atoi(c.Param("status"))
+	status, err := ValidateStatusType(c.Param("status"))
 
 	utils.CheckError(err)
 
@@ -140,4 +143,18 @@ func UpdateStatus(c echo.Context) error {
 	utils.CheckError(err)
 
 	return c.JSON(http.StatusOK, id)
+}
+
+func ValidateStatusType(status string) (int, error) {
+	i, err := strconv.Atoi(string(status))
+
+	utils.CheckError(err)
+
+	v := StatusType(i)
+
+	if v < PENDING || v > REJECTED {
+		return 0, ErrInvalidStatusType
+	}
+
+	return i, nil
 }
