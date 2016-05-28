@@ -145,7 +145,7 @@ func UpdateStatus(c echo.Context) error {
 	return c.JSON(http.StatusOK, id)
 }
 
-func ValidateStatusType(status string) (int, error) {
+func ValidateStatusType(status string) (StatusType, error) {
 	i, err := strconv.Atoi(string(status))
 
 	utils.CheckError(err)
@@ -156,5 +156,5 @@ func ValidateStatusType(status string) (int, error) {
 		return 0, ErrInvalidStatusType
 	}
 
-	return i, nil
+	return v, nil
 }
