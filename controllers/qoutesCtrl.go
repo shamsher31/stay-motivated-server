@@ -13,22 +13,22 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-type StatusType int
+type statusType int
 
 const (
-	PENDING StatusType = iota
-	APPROVED
-	REJECTED
+	Pending statusType = iota
+	Approved
+	Rejected
 )
 
-var ErrInvalidStatusType = errors.New("Invalid StatusType")
+var ErrInvalidstatusType = errors.New("Invalid statusType")
 
 // Quote defines structure of quote
 type Quote struct {
 	ID        bson.ObjectId `json:"-" bson:"_id,omitempty"`
 	Title     string        `json:"title" bson:"title"`
 	Author    string        `json:"author" bson:"author,omitempty"`
-	Status    StatusType    `json:"status" bson:"status"`
+	Status    statusType    `json:"status" bson:"status"`
 	Tag       []string      `json:"tag" bson:"tag"`
 	Timestamp time.Time     `json:"timestamp" bson:"timestamp"`
 }
@@ -47,7 +47,7 @@ func CreateQoute(c echo.Context) error {
 		ID:        id,
 		Title:     title,
 		Author:    author,
-		Status:    PENDING,
+		Status:    Pending,
 		Timestamp: time.Now(),
 	})
 
@@ -145,15 +145,15 @@ func UpdateStatus(c echo.Context) error {
 	return c.JSON(http.StatusOK, id)
 }
 
-func ValidateStatusType(status string) (StatusType, error) {
+func ValidateStatusType(status string) (statusType, error) {
 	i, err := strconv.Atoi(string(status))
 
 	utils.CheckError(err)
 
-	v := StatusType(i)
+	v := statusType(i)
 
-	if v < PENDING || v > REJECTED {
-		return 0, ErrInvalidStatusType
+	if v < Pending || v > Rejected {
+		return 0, ErrInvalidstatusType
 	}
 
 	return v, nil
