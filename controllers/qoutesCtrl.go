@@ -21,7 +21,7 @@ const (
 	Rejected
 )
 
-var ErrInvalidstatusType = errors.New("Invalid statusType")
+var ErrInvalidStatusType = errors.New("Invalid statusType")
 
 // Quote defines structure of quote
 type Quote struct {
@@ -153,7 +153,7 @@ func ValidateStatusType(status string) (statusType, error) {
 	v := statusType(i)
 
 	if v < Pending || v > Rejected {
-		return 0, ErrInvalidstatusType
+		return 0, ErrInvalidStatusType
 	}
 
 	return v, nil
