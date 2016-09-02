@@ -24,3 +24,7 @@ _testmain.go
 *.prof
 .env
 vendor/
+.vscode
+
+# Exclude the binary
+stay-motivated-server

@@ -32,7 +32,7 @@ func main() {
 	e.PUT("/qoutes/:id", qoutes.UpdateQoute)
 	e.PUT("/qoutes/:id/:status", qoutes.UpdateStatus)
 	e.DELETE("/qoutes/:id", qoutes.DeleteQoute)
-
+	log.Print("Server listing on port", os.Getenv("PORT"))
 	e.Run(fasthttp.New(os.Getenv("PORT")))
 
 }
