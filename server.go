@@ -28,6 +28,7 @@ func main() {
 
 	e.POST("/qoutes/", qoutes.CreateQoute)
 	e.GET("/qoutes/", qoutes.GetAllQoutes)
+	e.GET("/qoutes/by/:status", qoutes.GetQoutesByStatus)
 	e.GET("/qoutes/:id", qoutes.GetQoute)
 	e.PUT("/qoutes/:id", qoutes.UpdateQoute)
 	e.PUT("/qoutes/:id/:status", qoutes.UpdateStatus)

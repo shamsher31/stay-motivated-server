@@ -64,7 +64,25 @@ func GetAllQoutes(c echo.Context) error {
 	defer session.Close()
 
 	qoutes := db.GetCollection(session, "qoutes")
-	err := qoutes.Find(bson.M{}).One(&results)
+	err := qoutes.Find(bson.M{}).All(&results)
+
+	utils.CheckError(err)
+	return c.JSON(http.StatusOK, results)
+}
+
+func GetQoutesByStatus(c echo.Context) error {
+
+	var results []Quote
+
+	session := db.ConnectDB()
+	defer session.Close()
+
+	status, err := ValidateStatusType(c.Param("status"))
+
+	utils.CheckError(err)
+
+	qoutes := db.GetCollection(session, "qoutes")
+	err = qoutes.Find(bson.M{"status": status}).All(&results)
 
 	utils.CheckError(err)
 	return c.JSON(http.StatusOK, results)
