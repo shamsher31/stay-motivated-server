@@ -29,3 +29,8 @@ debug
 
 # Exclude the binary
 stay-motivated-server
+
+# Testing specific
+*.out
+*.prof
+*.test
