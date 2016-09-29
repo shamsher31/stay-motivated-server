@@ -6,7 +6,7 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo"
-	"github.com/labstack/echo/engine/fasthttp"
+	"github.com/labstack/echo/engine/standard"
 	"github.com/labstack/echo/middleware"
 	"github.com/shamsher31/stay-motivated-server/controllers"
 )
@@ -34,6 +34,6 @@ func main() {
 	e.PUT("/qoutes/:id/:status", qoutes.UpdateStatus)
 	e.DELETE("/qoutes/:id", qoutes.DeleteQoute)
 	log.Print("Server listing on port", os.Getenv("PORT"))
-	e.Run(fasthttp.New(os.Getenv("PORT")))
+	e.Run(standard.New(os.Getenv("PORT")))
 
 }
