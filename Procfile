@@ -1,1 +1,0 @@
-web: stay-motivated-server
