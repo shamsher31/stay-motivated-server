@@ -1,4 +1,4 @@
-package qoutes
+package main
 
 import (
 	"errors"
@@ -7,8 +7,6 @@ import (
 	"time"
 
 	"github.com/labstack/echo"
-	"github.com/shamsher31/stay-motivated-server/db"
-	"github.com/shamsher31/stay-motivated-server/utils"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
@@ -35,14 +33,14 @@ type Quote struct {
 
 func CreateQoute(c echo.Context) error {
 
-	session := db.ConnectDB()
+	session := ConnectDB()
 	defer session.Close()
 
 	title := c.FormValue("title")
 	author := c.FormValue("author")
 
-	id := db.GenerateID()
-	qoutes := db.GetCollection(session, "qoutes")
+	id := GenerateID()
+	qoutes := GetCollection(session, "qoutes")
 	err := qoutes.Insert(&Quote{
 		ID:        id,
 		Title:     title,
@@ -51,7 +49,7 @@ func CreateQoute(c echo.Context) error {
 		Timestamp: time.Now(),
 	})
 
-	utils.CheckError(err)
+	CheckError(err)
 
 	return c.JSON(http.StatusOK, id)
 }
@@ -60,13 +58,13 @@ func GetAllQoutes(c echo.Context) error {
 
 	var results []Quote
 
-	session := db.ConnectDB()
+	session := ConnectDB()
 	defer session.Close()
 
-	qoutes := db.GetCollection(session, "qoutes")
+	qoutes := GetCollection(session, "qoutes")
 	err := qoutes.Find(bson.M{}).All(&results)
 
-	utils.CheckError(err)
+	CheckError(err)
 	return c.JSON(http.StatusOK, results)
 }
 
@@ -74,43 +72,43 @@ func GetQoutesByStatus(c echo.Context) error {
 
 	var results []Quote
 
-	session := db.ConnectDB()
+	session := ConnectDB()
 	defer session.Close()
 
 	status, err := ValidateStatusType(c.Param("status"))
 
-	utils.CheckError(err)
+	CheckError(err)
 
-	qoutes := db.GetCollection(session, "qoutes")
+	qoutes := GetCollection(session, "qoutes")
 	err = qoutes.Find(bson.M{"status": status}).All(&results)
 
-	utils.CheckError(err)
+	CheckError(err)
 	return c.JSON(http.StatusOK, results)
 }
 
 func GetQoute(c echo.Context) error {
 
-	session := db.ConnectDB()
+	session := ConnectDB()
 	defer session.Close()
 
 	result := Quote{}
-	qoutes := db.GetCollection(session, "qoutes")
+	qoutes := GetCollection(session, "qoutes")
 	err := qoutes.Find(bson.M{}).One(&result)
 
-	utils.CheckError(err)
+	CheckError(err)
 
 	return c.JSON(http.StatusOK, result)
 }
 
 func UpdateQoute(c echo.Context) error {
-	session := db.ConnectDB()
+	session := ConnectDB()
 	defer session.Close()
 
-	id := db.GetHexID(c.Param("id"))
+	id := GetHexID(c.Param("id"))
 
 	var qoute Quote
 
-	qoutes := db.GetCollection(session, "qoutes")
+	qoutes := GetCollection(session, "qoutes")
 
 	change := mgo.Change{
 		Update: bson.M{"$set": bson.M{
@@ -122,22 +120,22 @@ func UpdateQoute(c echo.Context) error {
 
 	info, err := qoutes.Find(bson.M{"_id": id}).Apply(change, &qoute)
 
-	utils.CheckError(err)
+	CheckError(err)
 
 	return c.JSON(http.StatusOK, info)
 }
 
 func DeleteQoute(c echo.Context) error {
 
-	session := db.ConnectDB()
+	session := ConnectDB()
 	defer session.Close()
 
-	id := db.GetHexID(c.Param("id"))
+	id := GetHexID(c.Param("id"))
 
-	qoutes := db.GetCollection(session, "qoutes")
+	qoutes := GetCollection(session, "qoutes")
 	err := qoutes.Remove(bson.M{"_id": id})
 
-	utils.CheckError(err)
+	CheckError(err)
 
 	return c.JSON(http.StatusOK, qoutes)
 
@@ -145,20 +143,20 @@ func DeleteQoute(c echo.Context) error {
 
 func UpdateStatus(c echo.Context) error {
 
-	session := db.ConnectDB()
+	session := ConnectDB()
 	defer session.Close()
 
-	id := db.GetHexID(c.Param("id"))
+	id := GetHexID(c.Param("id"))
 	status, err := ValidateStatusType(c.Param("status"))
 
-	utils.CheckError(err)
+	CheckError(err)
 
-	qoutes := db.GetCollection(session, "qoutes")
+	qoutes := GetCollection(session, "qoutes")
 	err = qoutes.Update(
 		bson.M{"_id": id},
 		bson.M{"$set": bson.M{"status": status}})
 
-	utils.CheckError(err)
+	CheckError(err)
 
 	return c.JSON(http.StatusOK, id)
 }
@@ -166,7 +164,7 @@ func UpdateStatus(c echo.Context) error {
 func ValidateStatusType(status string) (statusType, error) {
 	i, err := strconv.Atoi(string(status))
 
-	utils.CheckError(err)
+	CheckError(err)
 
 	v := statusType(i)
 
