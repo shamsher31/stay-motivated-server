@@ -24,6 +24,11 @@ func main() {
 	// Middleware
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
+	e.Use(middleware.CORS())
+
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"http://localhost:8100/"},
+	}))
 
 	e.POST("/qoutes/", CreateQoute)
 	e.GET("/qoutes/", GetAllQoutes)
