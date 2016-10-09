@@ -27,7 +27,7 @@ func main() {
 	e.Use(middleware.CORS())
 
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{"http://localhost:8100/"},
+		AllowOrigins: []string{"*", "http://192.168.43.108:8100/"},
 	}))
 
 	e.POST("/qoutes/", CreateQoute)
